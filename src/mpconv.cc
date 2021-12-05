@@ -171,7 +171,7 @@ static bool convert_playlist(const string &inputFileName,
 
 static void print_help(void)
 {
-	clog << "mpconv - m3u8 to mpd playlist converter\n\n"
+	clog << "mpconv - M3U8 to mpd playlist converter\n\n"
 		<< "Usage: mpconv [OPTIONS] M3U8_PLAYLIST MPD_PLAYLIST\n\n"
 		<< "Options:\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
