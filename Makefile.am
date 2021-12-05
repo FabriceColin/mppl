@@ -10,7 +10,7 @@ dist-hook:
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
 
-man_MANS = src/mpcon.1 src/mpgen.1
+man_MANS = src/mpconv.1 src/mpgen.1
 
 manuals:
 	@help2man --no-info --no-discard-stderr --name "M3U8 to mpd playlist converter" src/mpconv >src/mpconv.1
