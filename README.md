@@ -3,7 +3,7 @@ Music Player Playlists (mppl) tools
 
 Copyright 2021 Fabrice Colin <fabrice dot colin at gmail dot com>
 
-Tools to convert or generate playlists suitable for Volumio or any other mpd powered solution.
+Tools to convert or generate playlists suitable for [Volumio](https://volumio.com/en/) or any other mpd powered solution.
 
 # Conversion
 
