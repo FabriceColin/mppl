@@ -2,15 +2,17 @@
 #ifndef _TRACK_H
 #define _TRACK_H
 
+#include <time.h>
 #include <string>
 #include <json11.hpp>
 
-typedef enum { TRACK_SORT_ALPHA = 0, TRACK_SORT_YEAR } TrackSort;
+typedef enum { TRACK_SORT_ALPHA = 0, TRACK_SORT_YEAR, TRACK_SORT_MTIME } TrackSort;
 
 class Track
 {
 	public:
-		Track(const std::string &trackName, const std::string &trackPath);
+		Track(const std::string &trackName, const std::string &trackPath,
+			time_t modTime = 0);
 		Track(const Track &other);
 		virtual ~Track();
 
@@ -24,7 +26,11 @@ class Track
 
 		const std::string &get_artist(void) const;
 
+		const std::string &get_album(void) const;
+
 		int get_year(void) const;
+
+		void set_mtime(time_t modTime);
 
 		void set_sort(TrackSort sort);
 
@@ -46,11 +52,16 @@ class Track
 		std::string m_uri;
 		int m_number;
 		int m_year;
+		time_t m_modTime;
 		TrackSort m_sort;
+
+		bool sort_by_artist(const Track &other) const;
 
 		bool sort_by_album(const Track &other) const;
 
 		bool sort_by_year(const Track &other) const;
+
+		bool sort_by_mtime(const Track &other) const;
 
 };
 

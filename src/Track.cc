@@ -15,11 +15,13 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
-Track::Track(const string &trackName, const string &trackPath) :
+Track::Track(const string &trackName, const string &trackPath,
+	time_t modTime) :
 	m_trackName(trackName),
 	m_trackPath(trackPath),
 	m_number(0),
 	m_year(2021),
+	m_modTime(modTime),
 	m_sort(TRACK_SORT_ALPHA)
 {
 }
@@ -33,6 +35,7 @@ Track::Track(const Track &other) :
 	m_uri(other.m_uri),
 	m_number(other.m_number),
 	m_year(other.m_year),
+	m_modTime(other.m_modTime),
 	m_sort(other.m_sort)
 {
 }
@@ -56,6 +59,7 @@ Track &Track::operator=(const Track &other)
 	m_uri = other.m_uri;
 	m_number = other.m_number;
 	m_year = other.m_year;
+	m_modTime = other.m_modTime;
 	m_sort = other.m_sort;
 
 	return *this;
@@ -78,25 +82,12 @@ void Track::adjust_path(void)
 
 bool Track::operator<(const Track &other) const
 {
-	string artist(to_lower_case(m_artist)), otherArtist(to_lower_case(other.m_artist));
-
-	if (artist < otherArtist)
+	if (m_sort == TRACK_SORT_MTIME)
 	{
-		return true;
-	}
-	else if (artist == otherArtist)
-	{
-		if (m_sort == TRACK_SORT_ALPHA)
-		{
-			return sort_by_album(other);
-		}
-		else if (m_sort == TRACK_SORT_YEAR)
-		{
-			return sort_by_year(other);
-		}
+		return sort_by_mtime(other);
 	}
 
-	return false;
+	return sort_by_artist(other);
 }
 
 bool Track::retrieve_tags(bool conversionMode)
@@ -155,9 +146,19 @@ const string &Track::get_artist(void) const
 	return m_artist;
 }
 
+const string &Track::get_album(void) const
+{
+	return m_album;
+}
+
 int Track::get_year(void) const
 {
 	return m_year;
+}
+
+void Track::set_mtime(time_t modTime)
+{
+	m_modTime = modTime;
 }
 
 void Track::set_sort(TrackSort sort)
@@ -177,6 +178,29 @@ Json Track::to_json(void) const
 		{ "uri", m_uri },
 		{ "year", m_year }
 	};
+}
+
+bool Track::sort_by_artist(const Track &other) const
+{
+	string artist(to_lower_case(m_artist)), otherArtist(to_lower_case(other.m_artist));
+
+	if (artist < otherArtist)
+	{
+		return true;
+	}
+	else if (artist == otherArtist)
+	{
+		if (m_sort == TRACK_SORT_ALPHA)
+		{
+			return sort_by_album(other);
+		}
+		else if (m_sort == TRACK_SORT_YEAR)
+		{
+			return sort_by_year(other);
+		}
+	}
+
+	return false;
 }
 
 bool Track::sort_by_album(const Track &other) const
@@ -210,10 +234,26 @@ bool Track::sort_by_year(const Track &other) const
 	return false;
 }
 
+bool Track::sort_by_mtime(const Track &other) const
+{
+	if (m_modTime < other.m_modTime)
+	{
+		return true;
+	}
+	else if (m_modTime == other.m_modTime)
+	{
+		return sort_by_artist(other);
+	}
+
+	return false;
+}
+
 void Track::write_file(const string &outputFileName,
 	const vector<Track> &tracks)
 {
 	ofstream outputFile;
+
+	clog << "Writing " << outputFileName << endl;
 
 	outputFile.open(outputFileName.c_str());
 
