@@ -36,6 +36,8 @@ class Track
 
 		json11::Json to_json(void) const;
 
+		static std::string clean_file_name(const std::string &outputFileName);
+
 		static void write_file(const std::string &outputFileName,
 			const std::vector<Track> &tracks);
 

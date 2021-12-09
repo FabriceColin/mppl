@@ -248,6 +248,22 @@ bool Track::sort_by_mtime(const Track &other) const
 	return false;
 }
 
+string Track::clean_file_name(const string &outputFileName)
+{
+	string illegalChars("#$+%!`&'*?<>|/\\{}\"=:@");
+	string fileName(outputFileName);
+
+	string::size_type pos = fileName.find_first_of(illegalChars);
+	while (pos != string::npos)
+	{
+		fileName[pos] = '_';
+
+		pos = fileName.find_first_of(illegalChars, pos);
+	}
+
+	return fileName;
+}
+
 void Track::write_file(const string &outputFileName,
 	const vector<Track> &tracks)
 {

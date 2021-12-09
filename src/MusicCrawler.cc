@@ -56,7 +56,7 @@ struct DumpAndDeleteYearTracksVectorFunc
 
 				yearFileNameStr << m_prefix << artistTracks.first;
 
-				string fileName(yearFileNameStr.str());
+				string fileName(Track::clean_file_name(yearFileNameStr.str()));
 
 				if (fileName.empty() == false)
 				{
@@ -94,7 +94,7 @@ struct DumpAndDeleteArtistTracksVectorFunc
 				(artistTracks.second->empty() == false))
 			{
 				// Use the original artist name, not the lower cased key
-				string fileName(artistTracks.second->begin()->get_artist());
+				string fileName(Track::clean_file_name(artistTracks.second->begin()->get_artist()));
 
 				if (fileName.empty() == false)
 				{
