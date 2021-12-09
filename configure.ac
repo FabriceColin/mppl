@@ -1,8 +1,10 @@
-AC_INIT([mppl], [0.7.0])
+AC_INIT([mppl], [0.8.0])
 AC_CONFIG_SRCDIR([src/mpconv.cc])
 AM_INIT_AUTOMAKE
 
 AC_PROG_CXX
+
+AC_CHECK_FUNCS(strptime)
 
 PKG_CHECK_MODULES(JSON, json11 >= 1.0 )
 AC_SUBST(JSON_CFLAGS)

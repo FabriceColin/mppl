@@ -38,30 +38,43 @@ static struct option g_longOptions[] = {
     {"max-depth", 0, 0, 'd'},
     {"from", 1, 0, 'f'},
     {"help", 0, 0, 'h'},
+    {"to", 1, 0, 't'},
     {"music-library", 1, 0, 'm'},
     {"output-directory", 1, 0, 'o'},
-    {"to", 1, 0, 't'},
     {"version", 0, 0, 'v'},
     {0, 0, 0, 0}
 };
 
-static void crawl_collection(const string &topLevelDirName)
+static void parse_items(const string &topLevelDirName,
+	const string &inputFileName)
 {
-	MusicFolderCrawler crawler(topLevelDirName);
-
-	if (Track::m_fromPath.empty() == true)
+	if ((topLevelDirName.empty() == true) ||
+		(inputFileName.empty() == true))
 	{
-		// Assume this directory is what needs to be stripped from URIs
-		Track::m_fromPath = topLevelDirName;
+		return;
 	}
+
+	off_t length = 0;
+
+	clog << "Opening " << inputFileName << endl;
+
+	// Slurp the whole file
+	char *pCollection = load_file(inputFileName, length);
+
+	if (pCollection == NULL)
+	{
+		return;
+	}
+
+	BandcampMusicCrawler crawler(topLevelDirName, pCollection);
 
 	crawler.crawl();
 }
 
 static void print_help(void)
 {
-	clog << "mpgen - mpd playlists generator\n\n"
-		<< "Usage: mpgen [OPTIONS] MUSIC_DIRECTORY\n\n"
+	clog << "mpbandcamp - Bandcamp collection playlists generator\n\n"
+		<< "Usage: mpbandcamp [OPTIONS] MUSIC_DIRECTORY COLLECTION_JSON_FILE_NAME\n\n"
 		<< "Options:\n"
 		<< "  -d, --max-depth               maximum depth when in browse mode\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
@@ -140,14 +153,14 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	if (argc - optind != 1)
+	if (argc - optind != 2)
 	{
-		clog << "Wrong number of parameters, expected MUSIC_DIRECTORY" << endl;
+		clog << "Wrong number of parameters, expected MUSIC_DIRECTORY COLLECTION_JSON_FILE_NAME" << endl;
 		return EXIT_FAILURE;
 	}
 
-	crawl_collection(argv[optind]);
+	parse_items(argv[optind], argv[optind + 1]);
 
-	return EXIT_SUCCESS;
+	return EXIT_FAILURE;
 }
 

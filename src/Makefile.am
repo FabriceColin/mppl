@@ -1,9 +1,15 @@
-bin_PROGRAMS = mpconv mpgen
+bin_PROGRAMS = mpbandcamp mpconv mpgen
 
 AM_CXXFLAGS = @JSON_CFLAGS@ @TAGLIB_CFLAGS@
 
-mpconv_SOURCES = mpconv.cc \
+mpbandcamp_LDADD = @TAGLIB_LIBS@ @JSON_LIBS@
+
+mpbandcamp_SOURCES = mpbandcamp.cc \
 	MusicCrawler.cc \
+	Track.cc \
+	Utilities.cc
+
+mpconv_SOURCES = mpconv.cc \
 	Track.cc \
 	Utilities.cc
 
