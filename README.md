@@ -31,17 +31,18 @@ $ mpgen -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlists -f /fmedia/v
 
 Browse the Volumio music collection mounted at "/fmedia/volumio_data/dyn/data/INTERNAL" and generate the same playlists mpconv does, and in addition playlists for each Bandcamp purchase year (named "Bandcamp YYYY").
 
-These playlists are sorted by purchase date then by artist, album name and track number.
+These additional playlists are sorted by purchase date then by artist, album name and track number.
 
 ```shell
-$ curl -X POST -H "Content-Type: Application/JSON" -d '{"fan_id":FAN_ID_HERE,"older_than_token":"CURRENT_EPOCH_HERE:0:a::","count":COLLECTION_SIZE_HERE}' https://bandcamp.com/api/fancollection/1/collection_items >collection_items.json
+$ curl -X POST -H "Content-Type: Application/JSON" -d '{"fan_id":FAN_ID,"older_than_token":"CURRENT_EPOCH:0:a::","count":COLLECTION_SIZEE}' https://bandcamp.com/api/fancollection/1/collection_items >collection_items.json
 
 $ mpbandcamp -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlists -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL/ collection_items.json
 ```
 
-FAN_ID_HERE is the Bandcamp fan ID. It can be obtained with your browser's developer tools, by looking at XHR requests to https://bandcamp.com/api/fancollection/1/collection_items when you press the "view all" button at the bottom of the Bandcamp collection page
+FAN_ID is your Bandcamp fan ID. It can be obtained with your browser's developer tools, by looking at XHR requests to https://bandcamp.com/api/fancollection/1/collection_items when you press the "view all" button at the bottom of your Bandcamp collection page
 
-CURRENT_EPOCH_HERE is the output of date +%s
+CURRENT_EPOCH is the current epoch (the output of date +%s).
 
-COLLECTION_SIZE_HERE should be equal or greater to the number of albums in the collection, as shown on the "collection" tab on the Bandcamp fan page
+COLLECTION_SIZE should be equal or greater to the number of albums in your collection, as shown on the "collection" tab on the Bandcamp fan page.
 
+This relies on the Bandcamp fancollection API which doesn't provide any track metadata, therefore the following assumes that music purchased on Bandcamp was downloaded and is available in the music collection and that tracks metadata can be looked up there.
