@@ -51,19 +51,46 @@ class MusicFolderCrawler : public MusicCrawler
 
 };
 
+class BandcampAlbum
+{
+	public:
+		BandcampAlbum(const std::string &artist,
+			const std::string &album);
+		BandcampAlbum(const BandcampAlbum &other);
+		virtual ~BandcampAlbum();
+
+		BandcampAlbum &operator=(const BandcampAlbum &other);
+
+		bool operator<(const BandcampAlbum &other) const;
+
+		json11::Json to_json(void) const;
+
+		std::string m_artist;
+		std::string m_album;
+
+};
+
 class BandcampMusicCrawler : public MusicFolderCrawler
 {
 	public:
 		BandcampMusicCrawler(const std::string &topLevelDirName,
 			const char *pCollection);
+		BandcampMusicCrawler(const std::string &topLevelDirName,
+			const char *pCollection,
+			const char *pLookup);
 		virtual ~BandcampMusicCrawler();
 
 		virtual void crawl(void);
 
 	protected:
-		json11::Json m_jsonObject;
+		json11::Json m_bandcampObject;
 		std::string m_error;
 		std::map<int, std::vector<Track>*> m_purchasedTracks;
+
+		unsigned int find_album_tracks(const std::vector<Track> *pTracks,
+			const BandcampAlbum &thisAlbum,
+			unsigned int year,
+			char *timeStr, size_t strSize);
 
 	private:
 		BandcampMusicCrawler(const BandcampMusicCrawler &other);

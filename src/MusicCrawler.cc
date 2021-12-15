@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -20,6 +21,7 @@ using std::clog;
 using std::endl;
 using std::for_each;
 using std::map;
+using std::ofstream;
 using std::pair;
 using std::sort;
 using std::string;
@@ -56,7 +58,7 @@ struct DumpAndDeleteYearTracksVectorFunc
 
 				yearFileNameStr << m_prefix << artistTracks.first;
 
-				string fileName(Track::clean_file_name(yearFileNameStr.str()));
+				string fileName(clean_file_name(yearFileNameStr.str()));
 
 				if (fileName.empty() == false)
 				{
@@ -94,7 +96,7 @@ struct DumpAndDeleteArtistTracksVectorFunc
 				(artistTracks.second->empty() == false))
 			{
 				// Use the original artist name, not the lower cased key
-				string fileName(Track::clean_file_name(artistTracks.second->begin()->get_artist()));
+				string fileName(clean_file_name(artistTracks.second->begin()->get_artist()));
 
 				if (fileName.empty() == false)
 				{
@@ -135,9 +137,12 @@ MusicCrawler::MusicCrawler()
 
 MusicCrawler::~MusicCrawler()
 {
-	// Write playlsts and free lists up
-	for_each(m_yearTracks.begin(), m_yearTracks.end(),
-		DumpAndDeleteYearTracksVectorFunc(m_outputDirectory, "Year "));
+	if (m_yearTracks.empty() == false)
+	{
+		// Write playlsts and free lists up
+		for_each(m_yearTracks.begin(), m_yearTracks.end(),
+			DumpAndDeleteYearTracksVectorFunc(m_outputDirectory, "Year "));
+	}
 }
 
 string MusicCrawler::m_outputDirectory;
@@ -151,9 +156,12 @@ MusicFolderCrawler::MusicFolderCrawler(const string &topLevelDirName) :
 
 MusicFolderCrawler::~MusicFolderCrawler()
 {
-	// Write playlsts and free lists up
-	for_each(m_artistTracks.begin(), m_artistTracks.end(),
-		DumpAndDeleteArtistTracksVectorFunc(m_outputDirectory));
+	if (m_artistTracks.empty() == false)
+	{
+		// Write playlsts and free lists up
+		for_each(m_artistTracks.begin(), m_artistTracks.end(),
+			DumpAndDeleteArtistTracksVectorFunc(m_outputDirectory));
+	}
 }
 
 void MusicFolderCrawler::crawl(void)
@@ -199,7 +207,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 			pYearTracks->push_back(newTrack);
 			m_yearTracks.insert(pair<int, vector<Track>*>(year, pYearTracks));
 		}
-		else
+		else if (yearIter->second != NULL)
 		{
 			yearIter->second->push_back(newTrack);
 		}
@@ -218,7 +226,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 			pArtistTracks->push_back(newTrack);
 			m_artistTracks.insert(pair<string, vector<Track>*>(artist, pArtistTracks));
 		}
-		else
+		else if (artistIter->second != NULL)
 		{
 			artistIter->second->push_back(newTrack);
 		}
@@ -282,18 +290,80 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 
 unsigned int MusicFolderCrawler::m_maxDepth = 0;
 
+BandcampAlbum::BandcampAlbum(const string &artist,
+	const string &album) :
+	m_artist(artist),
+	m_album(album)
+{
+}
+
+BandcampAlbum::BandcampAlbum(const BandcampAlbum &other) :
+	m_artist(other.m_artist),
+	m_album(other.m_album)
+{
+}
+
+BandcampAlbum::~BandcampAlbum()
+{
+}
+
+BandcampAlbum &BandcampAlbum::operator=(const BandcampAlbum &other)
+{
+	m_artist = other.m_artist;
+	m_album = other.m_album;
+
+	return *this;
+}
+
+bool BandcampAlbum::operator<(const BandcampAlbum &other) const
+{
+	if (m_artist < other.m_artist)
+	{
+		return true;
+	}
+	else if (m_artist == other.m_artist)
+	{
+		if (m_album < other.m_album)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Json BandcampAlbum::to_json(void) const
+{
+	// Expect the user to have filled in those values on the next run
+	return Json::object {
+		{ m_album, "" },
+		{ m_artist, "" }
+	};
+}
+
 BandcampMusicCrawler::BandcampMusicCrawler(const string &topLevelDirName,
 	const char *pCollection) :
 	MusicFolderCrawler(topLevelDirName),
-	m_jsonObject(Json::parse(pCollection, m_error))
+	m_bandcampObject(Json::parse(pCollection, m_error))
+{
+}
+
+BandcampMusicCrawler::BandcampMusicCrawler(const string &topLevelDirName,
+	const char *pCollection,
+	const char *pLookup) :
+	MusicFolderCrawler(topLevelDirName),
+	m_bandcampObject(Json::parse(pCollection, m_error))
 {
 }
 
 BandcampMusicCrawler::~BandcampMusicCrawler()
 {
-	// Write playlsts and free lists up
-	for_each(m_purchasedTracks.begin(), m_purchasedTracks.end(),
-		DumpAndDeleteYearTracksVectorFunc(m_outputDirectory, "Bandcamp "));
+	if (m_purchasedTracks.empty() == false)
+	{
+		// Write playlsts and free lists up
+		for_each(m_purchasedTracks.begin(), m_purchasedTracks.end(),
+			DumpAndDeleteYearTracksVectorFunc(m_outputDirectory, "Bandcamp "));
+	}
 }
 
 void BandcampMusicCrawler::crawl(void)
@@ -304,13 +374,13 @@ void BandcampMusicCrawler::crawl(void)
 		return;
 	}
 
-	if (m_jsonObject["more_available"].bool_value() == true)
+	if (m_bandcampObject["more_available"].bool_value() == true)
 	{
 		clog << "Collection is incomplete, adjust older_than_token and/or count" << endl;
 		return;
 	}
 
-	vector<Json> items(m_jsonObject["items"].array_items());
+	vector<Json> items(m_bandcampObject["items"].array_items());
 
 	if (items.empty() == true)
 	{
@@ -318,16 +388,23 @@ void BandcampMusicCrawler::crawl(void)
 		return;
 	}
 
-	// Go through the music collection first
+	// Now go through the music collection
 	MusicFolderCrawler::crawl();
 
 	unsigned int artistCount = 0;
 
+	// Try and match Bandcamp artists and albums to those found in the music collection
 	for (vector<Json>::const_iterator itemIter = items.begin();
 		itemIter != items.end(); ++itemIter)
 	{
-		string album(to_lower_case((*itemIter)["album_title"].string_value()));
-		string artist(to_lower_case((*itemIter)["band_name"].string_value()));
+		if (itemIter->is_object() == false)
+		{
+			continue;
+		}
+
+		string bandName(to_lower_case((*itemIter)["band_name"].string_value()));
+		string albumTitle(to_lower_case((*itemIter)["album_title"].string_value()));
+		BandcampAlbum thisAlbum(bandName, albumTitle);
 		string purchaseDate((*itemIter)["purchased"].string_value());
 		struct tm timeTm;
 		char timeStr[32];
@@ -345,58 +422,82 @@ void BandcampMusicCrawler::crawl(void)
 		int month = 1 + timeTm.tm_mon;
 		size_t strSize = strftime(timeStr, 32, "%s", &timeTm);
 
-		map<string, vector<Track>*>::iterator artistIter = m_artistTracks.find(artist);
+		map<string, vector<Track>*>::iterator artistIter = m_artistTracks.find(thisAlbum.m_artist);
 
 		if (artistIter == m_artistTracks.end())
 		{
-			clog << "No tracks for artist " << artist << endl;
+			clog << "No tracks for artist " << thisAlbum.m_artist << " " << thisAlbum.m_album << endl;
 			continue;
 		}
 		++artistCount;
 
 		const vector<Track> *pTracks = artistIter->second;
-		unsigned int albumTrackCount = 0;
-
 		// FIXME: optimize for speed and keep track of albums?
-		for (vector<Track>::const_iterator trackIter = pTracks->begin();
-			trackIter != pTracks->end(); ++trackIter)
+		unsigned int albumTrackCount = find_album_tracks(pTracks,
+			thisAlbum, year, timeStr, strSize);
+
+		if (albumTrackCount == 0)
 		{
-			if (album != to_lower_case(trackIter->get_album()))
-			{
-				continue;
-			}
-
-			Track newTrack(*trackIter);
-
-			// Sort all these tracks by mtime
-			if (strSize > 0)
-			{
-				newTrack.set_mtime((time_t)atoi(timeStr));
-			}
-			newTrack.set_sort(TRACK_SORT_MTIME);
-
-			map<int, vector<Track>*>::iterator yearIter = m_purchasedTracks.find(year);
-
-			if (yearIter == m_purchasedTracks.end())
-			{
-				vector<Track> *pYearTracks = new vector<Track>();
-
-				clog << "Bandcamp playlist " << year << endl;
-
-				pYearTracks->push_back(newTrack);
-				m_purchasedTracks.insert(pair<int, vector<Track>*>(year, pYearTracks));
-			}
-			else
-			{
-				yearIter->second->push_back(newTrack);
-			}
-
-			++albumTrackCount;
+			clog << "No tracks for album " << thisAlbum.m_artist << " " << thisAlbum.m_album << endl;
+			continue;
 		}
 
-		clog << "Bandcamp artist " << artist << " " << album << " " << month << "/" << year << " " << albumTrackCount << " tracks" << endl;
+		clog << "Bandcamp artist " << thisAlbum.m_artist << " " << thisAlbum.m_album
+			<< " " << month << "/" << year << " " << albumTrackCount << " tracks" << endl;
 	}
 
 	clog << "Found " << artistCount << " Bandcamp artist(s), across " << m_yearTracks.size() << " year(s)" << endl;
+}
+
+unsigned int BandcampMusicCrawler::find_album_tracks(const vector<Track> *pTracks,
+	const BandcampAlbum &thisAlbum, unsigned int year,
+	char *timeStr, size_t strSize)
+{
+	unsigned int albumTrackCount = 0;
+
+	if ((pTracks == NULL) ||
+		(pTracks->empty() == true))
+	{
+		return albumTrackCount;
+	}
+
+	for (vector<Track>::const_iterator trackIter = pTracks->begin();
+		trackIter != pTracks->end(); ++trackIter)
+	{
+		// Is this the same album?
+		if (thisAlbum.m_album != to_lower_case(trackIter->get_album()))
+		{
+			continue;
+		}
+
+		Track newTrack(*trackIter);
+
+		// Sort all these tracks by mtime
+		if (strSize > 0)
+		{
+			newTrack.set_mtime((time_t)atoi(timeStr));
+		}
+		newTrack.set_sort(TRACK_SORT_MTIME);
+
+		map<int, vector<Track>*>::iterator yearIter = m_purchasedTracks.find(year);
+
+		if (yearIter == m_purchasedTracks.end())
+		{
+			vector<Track> *pYearTracks = new vector<Track>();
+
+			clog << "Bandcamp playlist " << year << endl;
+
+			pYearTracks->push_back(newTrack);
+			m_purchasedTracks.insert(pair<int, vector<Track>*>(year, pYearTracks));
+		}
+		else if (yearIter->second != NULL)
+		{
+			yearIter->second->push_back(newTrack);
+		}
+
+		++albumTrackCount;
+	}
+
+	return albumTrackCount;
 }
 

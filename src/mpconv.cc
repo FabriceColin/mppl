@@ -66,6 +66,8 @@ static bool convert_playlist(const string &inputFileName,
     string::size_type startPos = playlist.find('\r');
 	unsigned int replaceCount = 0;
 
+	delete[] pPlaylist;
+
 	// Replace \r with \n in place
     while (startPos != string::npos)
 	{
@@ -80,8 +82,6 @@ static bool convert_playlist(const string &inputFileName,
 	}
 
 	stringstream inputFile(playlist);
-
-	delete[] pPlaylist;
 
 	if (inputFile.good() == false)
 	{
@@ -161,8 +161,6 @@ static bool convert_playlist(const string &inputFileName,
 	{
 		return false;
 	}
-
-	clog << "Writing " << outputFileName << endl;
 
 	Track::write_file(outputFileName, tracks);
 
