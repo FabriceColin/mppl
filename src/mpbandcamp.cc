@@ -56,7 +56,7 @@ static void parse_items(const string &topLevelDirName,
 
 	off_t length = 0;
 
-	clog << "Opening " << inputFileName << endl;
+	clog << "Opening collection file " << inputFileName << endl;
 
 	// Slurp the whole file
 	char *pCollection = load_file(inputFileName, length);
@@ -69,11 +69,13 @@ static void parse_items(const string &topLevelDirName,
 	BandcampMusicCrawler crawler(topLevelDirName, pCollection);
 
 	crawler.crawl();
+
+	delete[] pCollection;
 }
 
 static void print_help(void)
 {
-	clog << "mpbandcamp - Bandcamp collection playlists generator\n\n"
+	clog << "mpbandcamp - Bandcamp collection to mpd playlists generator\n\n"
 		<< "Usage: mpbandcamp [OPTIONS] MUSIC_DIRECTORY COLLECTION_JSON_FILE_NAME\n\n"
 		<< "Options:\n"
 		<< "  -d, --max-depth               maximum depth when in browse mode\n"
