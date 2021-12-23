@@ -39,19 +39,20 @@ static struct option g_longOptions[] = {
     {"from", 1, 0, 'f'},
     {"help", 0, 0, 'h'},
     {"to", 1, 0, 't'},
+    {"lookup", 1, 0, 'l'},
     {"music-library", 1, 0, 'm'},
     {"output-directory", 1, 0, 'o'},
     {"version", 0, 0, 'v'},
     {0, 0, 0, 0}
 };
 
-static void parse_items(const string &topLevelDirName,
+static bool parse_items(const string &topLevelDirName,
 	const string &inputFileName)
 {
 	if ((topLevelDirName.empty() == true) ||
 		(inputFileName.empty() == true))
 	{
-		return;
+		return false;
 	}
 
 	off_t length = 0;
@@ -60,17 +61,49 @@ static void parse_items(const string &topLevelDirName,
 
 	// Slurp the whole file
 	char *pCollection = load_file(inputFileName, length);
+	char *pLookup = NULL;
 
 	if (pCollection == NULL)
 	{
-		return;
+		return false;
 	}
 
-	BandcampMusicCrawler crawler(topLevelDirName, pCollection);
+	if (length == 0)
+	{
+		delete[] pCollection;
 
-	crawler.crawl();
+		return false;
+	}
+
+	length = 0;
+	if (BandcampMusicCrawler::m_lookupFileName.empty() == false)
+	{
+		clog << "Opening lookup file " << BandcampMusicCrawler::m_lookupFileName << endl;
+
+		pLookup = load_file(BandcampMusicCrawler::m_lookupFileName, length);
+	}
+
+	if ((pLookup != NULL) &&
+		(length > 0))
+	{
+		BandcampMusicCrawler crawler(topLevelDirName, pCollection, pLookup);
+
+		crawler.crawl();
+	}
+	else
+	{
+		BandcampMusicCrawler crawler(topLevelDirName, pCollection);
+
+		crawler.crawl();
+	}
 
 	delete[] pCollection;
+	if (pLookup != NULL)
+	{
+		delete[] pLookup;
+	}
+
+	return true;
 }
 
 static void print_help(void)
@@ -81,6 +114,7 @@ static void print_help(void)
 		<< "  -d, --max-depth               maximum depth when in browse mode\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
 		<< "  -h, --help                    display this help and exit\n"
+		<< "  -l, --lookup FILE_NAME        file to lookup metadata mismatches in\n"
 		<< "  -m, --music-library NAME      name of the music library this is for, defaults to INTERNAL\n"
 		<< "  -o, --output-directory NAME   name of the directory to write playlists to when in browse mode\n"
 		<< "  -t, --to NEW_PATH             path to replace EXISTING_PATH with\n"
@@ -96,7 +130,7 @@ int main(int argc, char **argv)
 	Track::m_musicLibrary = "INTERNAL";
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "d:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "d:f:hl:m:o:t:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -116,6 +150,12 @@ int main(int argc, char **argv)
 			case 'h':
 				print_help();
 				return EXIT_SUCCESS;
+			case 'l':
+				if (optarg != NULL)
+				{
+					BandcampMusicCrawler::m_lookupFileName = optarg;
+				}
+				break;
 			case 'm':
 				if (optarg != NULL)
 				{
@@ -146,7 +186,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "d:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "d:f:hl:m:o:t:v", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -161,7 +201,10 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	parse_items(argv[optind], argv[optind + 1]);
+	if (parse_items(argv[optind], argv[optind + 1]) == true)
+	{
+		return EXIT_SUCCESS;
+	}
 
 	return EXIT_FAILURE;
 }

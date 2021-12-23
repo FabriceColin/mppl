@@ -42,6 +42,7 @@ class MusicFolderCrawler : public MusicCrawler
 		std::string m_topLevelDirName;
 		unsigned int m_currentDepth;
 		std::map<std::string, std::vector<Track>*> m_artistTracks;
+		std::map<std::string, std::string> m_albumArtists;
 
 		void crawl_folder(const std::string &entryName);
 
@@ -63,7 +64,7 @@ class BandcampAlbum
 
 		bool operator<(const BandcampAlbum &other) const;
 
-		json11::Json to_json(void) const;
+		std::string to_key(void) const;
 
 		std::string m_artist;
 		std::string m_album;
@@ -82,8 +83,13 @@ class BandcampMusicCrawler : public MusicFolderCrawler
 
 		virtual void crawl(void);
 
+		static std::string m_lookupFileName;
+
 	protected:
 		json11::Json m_bandcampObject;
+		json11::Json m_lookupObject;
+		std::map<std::string, BandcampAlbum> m_resolvedAlbums;
+		std::vector<BandcampAlbum> m_missingAlbums;
 		std::string m_error;
 		std::map<int, std::vector<Track>*> m_purchasedTracks;
 
@@ -91,6 +97,12 @@ class BandcampMusicCrawler : public MusicFolderCrawler
 			const BandcampAlbum &thisAlbum,
 			unsigned int year,
 			char *timeStr, size_t strSize);
+
+		void load_lookup_file(void);
+
+		bool resolve_missing_album(BandcampAlbum &album);
+
+		void write_lookup_file(void);
 
 	private:
 		BandcampMusicCrawler(const BandcampMusicCrawler &other);
