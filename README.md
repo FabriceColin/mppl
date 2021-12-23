@@ -62,24 +62,28 @@ $ mpbandcamp -l lookup.json -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/pl
 lookup.json will list these purchases. For example:
 
 ```shell
-cat lookup.json | json_pp
+$ cat lookup.json | json_pp
 ```
 
+```json
 {
    "skuggsjá - a piece for mind & mirror" : {
       "album" : "",
       "artist" : ""
    }
 }
+```
 
 lookup.json can then be edited to indicate the actual artist and album name, for example:
 
+```json
 {
    "skuggsjá - a piece for mind & mirror" : {
       "album" : "skuggsjá: a piece for mind & mirror",
       "artist" : "ivar bjørnson & einar selvik"
    }
 }
+```
 
 The same command can be run again so that mpbandcamp resolves and matches this purchase with the right tracks.
 
