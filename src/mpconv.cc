@@ -62,8 +62,15 @@ static bool convert_playlist(const string &inputFileName,
 		return false;
 	}
 
+	if (length == 0)
+	{
+		delete[] pPlaylist;
+
+		return false;
+	}
+
 	string playlist(pPlaylist, length);
-    string::size_type startPos = playlist.find('\r');
+	string::size_type startPos = playlist.find('\r');
 	unsigned int replaceCount = 0;
 
 	delete[] pPlaylist;
