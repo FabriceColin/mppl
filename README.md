@@ -40,7 +40,7 @@ Browse the Volumio music collection mounted at "/fmedia/volumio_data/dyn/data/IN
 These additional playlists are sorted by purchase date then by artist, album name and track number.
 
 ```shell
-$ curl -X POST -H "Content-Type: Application/JSON" -d '{"fan_id":FAN_ID,"older_than_token":"CURRENT_EPOCH:0:a::","count":COLLECTION_SIZEE}' https://bandcamp.com/api/fancollection/1/collection_items >collection_items.json
+$ curl -X POST -H "Content-Type: Application/JSON" -d '{"fan_id":FAN_ID,"older_than_token":"CURRENT_EPOCH:0:a::","count":COLLECTION_SIZE}' https://bandcamp.com/api/fancollection/1/collection_items >collection_items.json
 
 $ mpbandcamp -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlists -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL/ collection_items.json
 ```
@@ -51,4 +51,35 @@ CURRENT_EPOCH is the current epoch (the output of date +%s).
 
 COLLECTION_SIZE should be equal or greater to the number of albums in your collection, as shown on the "collection" tab on the Bandcamp fan page.
 
-This relies on the Bandcamp fancollection API which doesn't provide any track metadata, therefore the following assumes that music purchased on Bandcamp was downloaded and is available in the music collection and that tracks metadata can be looked up there.
+The Bandcamp fancollection API doesn't provide any track metadata, therefore it is assumed that music purchased on Bandcamp was downloaded and that tracks can be looked up in the music collection.
+
+Since the artist and album information on Bandcamp doesn't necessarily match 100% how your music collection is tagged, there may be some purchases that can't be found on-disk. When that happens, mpbandcamp complains with "No tracks for..." messages. These can be saved to a lookup file for manual resolving.
+
+```shell
+$ mpbandcamp -l lookup.json -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlists -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL/ collection_items.json
+```
+
+lookup.json will list these purchases. For example:
+
+```shell
+cat lookup.json | json_pp
+```
+
+{
+   "skuggsjá - a piece for mind & mirror" : {
+      "album" : "",
+      "artist" : ""
+   }
+}
+
+lookup.json can then be edited to indicate the actual artist and album name, for example:
+
+{
+   "skuggsjá - a piece for mind & mirror" : {
+      "album" : "skuggsjá: a piece for mind & mirror",
+      "artist" : "ivar bjørnson & einar selvik"
+   }
+}
+
+The same command can be run again so that mpbandcamp resolves and matches this purchase with the right tracks.
+
