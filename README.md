@@ -69,7 +69,8 @@ $ cat lookup.json | json_pp
 {
    "skuggsjá - a piece for mind & mirror" : {
       "album" : "",
-      "artist" : ""
+      "artist" : "",
+      "path" : ""
    }
 }
 ```
@@ -84,6 +85,8 @@ lookup.json can then be edited to indicate the actual artist and album name, for
    }
 }
 ```
+
+Instead of providing values for album and artist, one can set path to the directory that holds the tracks.
 
 The same command can be run again so that mpbandcamp resolves and matches this purchase with the right tracks.
 

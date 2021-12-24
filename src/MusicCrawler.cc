@@ -190,6 +190,12 @@ void MusicFolderCrawler::crawl(void)
 	clog << "Found " << m_artistTracks.size() << " artist(s), across " << m_yearTracks.size() << " year(s)" << endl;
 }
 
+void MusicFolderCrawler::record_album_artist(const string &entryName,
+	const string &artist, const string &album)
+{
+	m_albumArtists.insert(pair<string, string>(album, artist));
+}
+
 void MusicFolderCrawler::crawl_folder(const string &entryName)
 {
 	struct stat fileStat;
@@ -213,6 +219,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 		if ((artist.empty() == true) ||
 			(year == 0))
 		{
+			clog << "Missing artist/year metadata on " << entryName << endl;
 			return;
 		}
 
@@ -251,7 +258,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 			artistIter->second->push_back(newTrack);
 		}
 
-		m_albumArtists.insert(pair<string, string>(album, artist));
+		record_album_artist(entryName, artist, album);
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
@@ -494,6 +501,16 @@ void BandcampMusicCrawler::crawl(void)
 	clog << "Found " << artistCount << " Bandcamp artist(s), across " << m_yearTracks.size() << " year(s)" << endl;
 }
 
+void BandcampMusicCrawler::record_album_artist(const string &entryName,
+	const string &artist, const string &album)
+{
+	BandcampAlbum thisAlbum(artist, album);
+
+	MusicFolderCrawler::record_album_artist(entryName, artist, album);
+
+	m_pathAlbums.insert(pair<string, BandcampAlbum>(entryName, thisAlbum));
+}
+
 unsigned int BandcampMusicCrawler::find_album_tracks(const vector<Track> *pTracks,
 	const BandcampAlbum &thisAlbum, unsigned int year,
 	char *timeStr, size_t strSize)
@@ -561,9 +578,11 @@ void BandcampMusicCrawler::load_lookup_file(void)
 
 		if (resolvedAlbumObject.is_object() == true)
 		{
-			string albumValue(resolvedAlbumObject["album"].string_value());
-			string artistValue(resolvedAlbumObject["artist"].string_value());
+			string albumValue(to_lower_case(resolvedAlbumObject["album"].string_value()));
+			string artistValue(to_lower_case(resolvedAlbumObject["artist"].string_value()));
+			string pathValue(resolvedAlbumObject["path"].string_value());
 
+			// Album and artist names are provided
 			if ((albumValue.empty() == false) ||
 				(artistValue.empty() == false))
 			{
@@ -571,10 +590,20 @@ void BandcampMusicCrawler::load_lookup_file(void)
 
 				m_resolvedAlbums.insert(pair<string, BandcampAlbum>(albumIter->first, resolvedAlbum));
 			}
+			// ...or the path to the folder is specified
+			else if (pathValue.empty() == false)
+			{
+				map<string, BandcampAlbum>::const_iterator pathIter = m_pathAlbums.find(pathValue);
+
+				if (pathIter != m_pathAlbums.end())
+				{
+					m_resolvedAlbums.insert(pair<string, BandcampAlbum>(albumIter->first, pathIter->second));
+				}
+			}
 		}
 	}
 
-	clog << "Lookup has " << m_resolvedAlbums.size() << "/" << m_lookupObject.object_items().size() << " albums" << endl;
+	clog << "Lookup file has " << m_resolvedAlbums.size() << "/" << m_lookupObject.object_items().size() << " albums" << endl;
 }
 
 bool BandcampMusicCrawler::resolve_missing_album(BandcampAlbum &album)
@@ -636,12 +665,12 @@ void BandcampMusicCrawler::write_lookup_file(void)
 			albums += ", ";
 		}
 		albums += string("\"") + escape_quotes(missingIter->to_key())
-			+ "\": { \"artist\":\"\", \"album\":\"\" }";
+			+ "\": { \"artist\":\"\", \"album\":\"\", \"path\":\"\" }";
 	}
 
 	albums += "}";
 
-	clog << "Added " << m_missingAlbums.size() << " unknown albums to lookup" << endl;
+	clog << "Recorded " << m_missingAlbums.size() << " unknown albums to the lookup file" << endl;
 
 	m_error.clear();
 

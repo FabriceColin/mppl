@@ -44,6 +44,9 @@ class MusicFolderCrawler : public MusicCrawler
 		std::map<std::string, std::vector<Track>*> m_artistTracks;
 		std::map<std::string, std::string> m_albumArtists;
 
+		virtual void record_album_artist(const std::string &entryName,
+			const std::string &artist, const std::string &album);
+
 		void crawl_folder(const std::string &entryName);
 
 	private:
@@ -89,9 +92,13 @@ class BandcampMusicCrawler : public MusicFolderCrawler
 		json11::Json m_bandcampObject;
 		json11::Json m_lookupObject;
 		std::map<std::string, BandcampAlbum> m_resolvedAlbums;
+		std::map<std::string, BandcampAlbum> m_pathAlbums;
 		std::vector<BandcampAlbum> m_missingAlbums;
-		std::string m_error;
 		std::map<int, std::vector<Track>*> m_purchasedTracks;
+		std::string m_error;
+
+		virtual void record_album_artist(const std::string &entryName,
+			const std::string &artist, const std::string &album);
 
 		unsigned int find_album_tracks(const std::vector<Track> *pTracks,
 			const BandcampAlbum &thisAlbum,
