@@ -17,6 +17,6 @@ manuals:
 	@help2man --no-info --no-discard-stderr --name "M3U8 to mpd playlist converter" src/mpconv >src/mpconv.1
 	@help2man --no-info --no-discard-stderr --name "mpd playlists generator" src/mpgen >src/mpgen.1
 
-EXTRA_DIST = AUTHORS ChangeLog README.md \
+EXTRA_DIST = AUTHORS ChangeLog README.md mppl.spec \
 	src/mpbandcamp.1 src/mpconv.1 src/mpgen.1
 

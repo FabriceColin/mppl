@@ -1,0 +1,43 @@
+Summary: Music Player Playlists tools
+Name: @PACKAGE@
+Version: @VERSION@
+Release: 1%{?dist}
+License: GPL
+Group: Applications/Internet 
+Source: %{name}-%{version}.tar.gz
+URL: https://github.com/FabriceColin/mppl
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+Requires: json11 >= 1.0, taglib >= 1.4
+BuildRequires: json11-devel >= 1.0, taglib-devel >= 1.4
+BuildRequires: gcc-c++
+
+%description
+ools to convert or generate playlists suitable for Volumio or any other mpd
+powered solution.
+
+%prep
+%setup -q
+
+%build
+%configure %{?_with_debug:--enable-debug=yes}
+make %{?_smp_mflags}
+
+%install
+[ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT
+
+%clean
+[ -n "$RPM_BUILD_ROOT" -a "$RPM_BUILD_ROOT" != / ] && rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-, root, root, -)
+%doc AUTHORS ChangeLog COPYING README.md
+%{_bindir}/mpbandcamp
+%{_bindir}/mpconv
+%{_bindir}/mpgen
+%{_mandir}/man1/mpbandcamp.*
+%{_mandir}/man1/mpconv.*
+%{_mandir}/man1/mpgen.*
+
+%changelog
+

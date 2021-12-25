@@ -33,5 +33,6 @@ AC_MSG_RESULT($enable_debug)
 
 AC_OUTPUT(
 Makefile
+mppl.spec
 src/Makefile
 )
