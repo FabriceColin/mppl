@@ -10,7 +10,7 @@ dist-hook:
 		echo A git clone is required to generate a ChangeLog >&2; \
 	fi
 
-man_MANS = src/mpconv.1 src/mpgen.1
+man_MANS = src/mpbandcamp.1 src/mpconv.1 src/mpgen.1
 
 manuals:
 	@help2man --no-info --no-discard-stderr --name "Bandcamp collection to mpd playlists generator" src/mpbandcamp >src/mpbandcamp.1
