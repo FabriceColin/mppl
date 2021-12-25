@@ -201,7 +201,11 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 	struct stat fileStat;
 	int entryStatus = stat(entryName.c_str(), &fileStat);
 
-	if (S_ISREG(fileStat.st_mode))
+	if (entryStatus != 0)
+	{
+		clog << "Unknown type for " << entryName << endl;
+	}
+	else if (S_ISREG(fileStat.st_mode))
 	{
 		// FIXME: look up MIME type, make sure it's a music file
 		Track newTrack(entryName, entryName,
@@ -291,7 +295,6 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 				(pEntryName[0] != '.'))
 			{
 				string subEntryName(entryName);
-				int subEntryStatus = 0;
 
 				if (entryName[entryName.length() - 1] != '/')
 				{
@@ -313,7 +316,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 	}
 	else
 	{
-		clog << "Unknown type " << entryName << endl;
+		clog << "Unsupported type for " << entryName << endl;
 	}
 }
 
