@@ -36,12 +36,14 @@ using std::vector;
 static struct option g_longOptions[] = {
     {"from", 1, 0, 'f'},
     {"help", 0, 0, 'h'},
+    {"sort", 1, 0, 's'},
     {"to", 1, 0, 't'},
     {"version", 0, 0, 'v'},
     {0, 0, 0, 0}
 };
 
 static bool convert_playlist(const string &inputFileName,
+	const string &sortBy,
 	const string &outputFileName)
 {
 	if ((inputFileName.empty() == true) ||
@@ -147,6 +149,18 @@ static bool convert_playlist(const string &inputFileName,
 			newTrack.adjust_path();
 			if (newTrack.retrieve_tags(true) == true)
 			{
+				TrackSort sort = TRACK_SORT_ALPHA;
+
+				if (sortBy == "year")
+				{
+					sort = TRACK_SORT_YEAR;
+				}
+				else if (sortBy == "mtime")
+				{
+					sort = TRACK_SORT_MTIME;
+				}
+				newTrack.set_sort(sort);
+
 				tracks.push_back(newTrack);
 			}
 
@@ -181,6 +195,7 @@ static void print_help(void)
 		<< "Options:\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
 		<< "  -h, --help                    display this help and exit\n"
+		<< "  -s, --sort alpha|year|mtime   how to sort MPD_PLAYLIST\n"
 		<< "  -t, --to NEW_PATH             path to replace EXISTING_PATH with\n"
 		<< "  -v, --version                 output version information and exit\n"
 		<< endl;
@@ -188,13 +203,14 @@ static void print_help(void)
 
 int main(int argc, char **argv)
 {
+	string sortBy;
 	int longOptionIndex = 0;
 
 	// Set defaults
 	Track::m_musicLibrary = "INTERNAL";
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "f:ht:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "f:hs:t:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -208,6 +224,12 @@ int main(int argc, char **argv)
 			case 'h':
 				print_help();
 				return EXIT_SUCCESS;
+			case 's':
+				if (optarg != NULL)
+				{
+					sortBy = optarg;
+				}
+				break;
 			case 't':
 				if (optarg != NULL)
 				{
@@ -222,7 +244,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "f:ht:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "f:hs:t:v", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
@@ -237,7 +259,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	if (convert_playlist(argv[optind], argv[optind + 1]) == true)
+	if (convert_playlist(argv[optind], sortBy, argv[optind + 1]) == true)
 	{
 		return EXIT_SUCCESS;
 	}
