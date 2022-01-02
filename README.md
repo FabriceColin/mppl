@@ -1,7 +1,7 @@
 # mppl
 Music Player Playlists (mppl) tools
 
-Copyright 2021 Fabrice Colin <fabrice dot colin at gmail dot com>
+Copyright 2021-2022 Fabrice Colin <fabrice dot colin at gmail dot com>
 
 Tools to convert or generate playlists suitable for [Volumio](https://volumio.com/en/) or any other [mpd](https://www.musicpd.org/) powered solution.
 
@@ -33,9 +33,11 @@ Artist playlists are always sorted by release date first, then by album name and
 $ mpgen -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlists -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL/
 ```
 
+Covers identification may be enabled with the -c/--covers option. This would generate a "Covers" playlist.
+
 # Playlists generation from a on-disk music collection and a Bandcamp collection
 
-Browse the Volumio music collection mounted at "/fmedia/volumio_data/dyn/data/INTERNAL" and generate the same playlists mpconv does, and in addition playlists for each year music was purchased on [Bandcamp](https://bandcamp.com/).
+Browse the Volumio music collection mounted at "/fmedia/volumio_data/dyn/data/INTERNAL" and generate the same playlists mpgen does, and in addition playlists for each year music was purchased on [Bandcamp](https://bandcamp.com/).
 
 These additional playlists are sorted by purchase date then by artist, album name and track number.
 
