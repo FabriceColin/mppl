@@ -15,9 +15,8 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
-Track::Track(const string &trackName, const string &trackPath,
+Track::Track(const string &trackPath,
 	time_t modTime) :
-	m_trackName(trackName),
 	m_trackPath(trackPath),
 	m_number(0),
 	m_year(2021),
@@ -27,11 +26,11 @@ Track::Track(const string &trackName, const string &trackPath,
 }
 
 Track::Track(const Track &other) :
-	m_trackName(other.m_trackName),
 	m_trackPath(other.m_trackPath),
 	m_title(other.m_title),
 	m_artist(other.m_artist),
 	m_album(other.m_album),
+	m_albumArt(other.m_albumArt),
 	m_uri(other.m_uri),
 	m_number(other.m_number),
 	m_year(other.m_year),
@@ -46,21 +45,19 @@ Track::~Track()
 
 Track &Track::operator=(const Track &other)
 {
-	if (m_trackPath == other.m_trackPath)
+	if (this != &other)
 	{
-		return *this;
+		m_trackPath = other.m_trackPath;
+		m_title = other.m_title;
+		m_artist = other.m_artist;
+		m_album = other.m_album;
+		m_albumArt = other.m_albumArt;
+		m_uri = other.m_uri;
+		m_number = other.m_number;
+		m_year = other.m_year;
+		m_modTime = other.m_modTime;
+		m_sort = other.m_sort;
 	}
-
-	m_trackName = other.m_trackName;
-	m_trackPath = other.m_trackPath;
-	m_title = other.m_title;
-	m_artist = other.m_artist;
-	m_album = other.m_album;
-	m_uri = other.m_uri;
-	m_number = other.m_number;
-	m_year = other.m_year;
-	m_modTime = other.m_modTime;
-	m_sort = other.m_sort;
 
 	return *this;
 }
@@ -112,6 +109,7 @@ bool Track::retrieve_tags(bool conversionMode)
 	m_title = pTag->title().toCString(true);
 	m_artist = pTag->artist().toCString(true);
 	m_album = pTag->album().toCString(true);
+	m_albumArt.clear();
 	m_uri = string("music-library/") + m_musicLibrary;
 	m_number = pTag->track();
 	m_year = pTag->year();
@@ -141,6 +139,11 @@ bool Track::retrieve_tags(bool conversionMode)
 	return true;
 }
 
+const string &Track::get_title(void) const
+{
+	return m_title;
+}
+
 const string &Track::get_artist(void) const
 {
 	return m_artist;
@@ -149,6 +152,11 @@ const string &Track::get_artist(void) const
 const string &Track::get_album(void) const
 {
 	return m_album;
+}
+
+void Track::set_album_art(const string &albumArt)
+{
+	m_albumArt = albumArt;
 }
 
 int Track::get_year(void) const
@@ -168,16 +176,31 @@ void Track::set_sort(TrackSort sort)
 
 Json Track::to_json(void) const
 {
-	return Json::object {
-		{ "album", m_album },
-		//{ "albumart", "" },
-		{ "artist", m_artist },
-		{ "service", "mpd" },
-		{ "title", m_title },
-		{ "type", "song" },
-		{ "uri", m_uri },
-		{ "year", m_year }
-	};
+	if (m_albumArt.empty() == true)
+	{
+		return Json::object {
+			{ "album", m_album },
+			{ "artist", m_artist },
+			{ "service", "mpd" },
+			{ "title", m_title },
+			{ "type", "song" },
+			{ "uri", m_uri },
+			{ "year", m_year }
+		};
+	}
+	else
+	{
+		return Json::object {
+			{ "album", m_album },
+			{ "albumart", m_albumArt },
+			{ "artist", m_artist },
+			{ "service", "mpd" },
+			{ "title", m_title },
+			{ "type", "song" },
+			{ "uri", m_uri },
+			{ "year", m_year }
+		};
+	}
 }
 
 bool Track::sort_by_artist(const Track &other) const
