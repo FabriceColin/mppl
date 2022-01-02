@@ -37,15 +37,20 @@ class MusicFolderCrawler : public MusicCrawler
 		virtual void crawl(void);
 
 		static unsigned int m_maxDepth;
+		static bool m_identifyCovers;
 
 	protected:
 		std::string m_topLevelDirName;
 		unsigned int m_currentDepth;
 		std::map<std::string, std::vector<Track>*> m_artistTracks;
-		std::map<std::string, std::string> m_albumArtists;
+		std::vector<Track> m_coverTracks;
 
 		virtual void record_album_artist(const std::string &entryName,
 			const std::string &artist, const std::string &album);
+
+		virtual void record_track_artist(const Track &newTrack,
+			const std::string &artist, const std::string &title,
+			int year);
 
 		void crawl_folder(const std::string &entryName);
 
@@ -102,8 +107,8 @@ class BandcampMusicCrawler : public MusicFolderCrawler
 
 		unsigned int find_album_tracks(const std::vector<Track> *pTracks,
 			const BandcampAlbum &thisAlbum,
-			unsigned int year,
-			char *timeStr, size_t strSize);
+			const std::string &albumArtUrl,
+			unsigned int year, char *timeStr, size_t strSize);
 
 		void load_lookup_file(void);
 

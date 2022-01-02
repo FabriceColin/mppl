@@ -35,6 +35,7 @@ using std::string;
 using std::vector;
 
 static struct option g_longOptions[] = {
+    {"covers", 0, 0, 'c'},
     {"max-depth", 0, 0, 'd'},
     {"from", 1, 0, 'f'},
     {"help", 0, 0, 'h'},
@@ -63,6 +64,7 @@ static void print_help(void)
 	clog << "mpgen - mpd playlists generator\n\n"
 		<< "Usage: mpgen [OPTIONS] MUSIC_DIRECTORY\n\n"
 		<< "Options:\n"
+		<< "  -c, --covers                  try and identify covers\n"
 		<< "  -d, --max-depth               maximum depth when in browse mode\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
 		<< "  -h, --help                    display this help and exit\n"
@@ -81,11 +83,14 @@ int main(int argc, char **argv)
 	Track::m_musicLibrary = "INTERNAL";
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "d:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "cd:f:hm:o:t:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
 		{
+			case 'c':
+				MusicFolderCrawler::m_identifyCovers = true;
+				break;
 			case 'd':
 				if (optarg != NULL)
 				{
@@ -131,7 +136,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "d:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "cd:f:hm:o:t:v", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)

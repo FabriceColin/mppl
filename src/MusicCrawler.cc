@@ -3,6 +3,9 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#ifdef HAVE_FNMATCH_H
+#include <fnmatch.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 #include <algorithm>
@@ -136,7 +139,7 @@ struct DumpAndDeleteArtistTracksVectorFunc
 						fileName.insert(0, m_outputDirectory);
 					}
 
-					// Sort albums by year then tracks
+					// Sort albums by year first
 					sort(artistTracks.second->begin(), artistTracks.second->end(), SortTracksFunc());
 
 					Track::write_file(fileName, *(artistTracks.second));
@@ -181,10 +184,28 @@ MusicFolderCrawler::~MusicFolderCrawler()
 		for_each(m_artistTracks.begin(), m_artistTracks.end(),
 			DumpAndDeleteArtistTracksVectorFunc(m_outputDirectory));
 	}
+
+	if (m_coverTracks.empty() == false)
+	{
+		string fileName("Covers");
+
+		// Sort albums by year first
+		sort(m_coverTracks.begin(), m_coverTracks.end(), SortTracksFunc());
+
+		if (m_outputDirectory.empty() == false)
+		{
+			fileName.insert(0, m_outputDirectory);
+		}
+		Track::write_file(fileName, m_coverTracks);
+	}
 }
 
 void MusicFolderCrawler::crawl(void)
 {
+	if (m_topLevelDirName[m_topLevelDirName.length() - 1] != '/')
+	{
+		m_topLevelDirName += "/";
+	}
 	crawl_folder(m_topLevelDirName);
 
 	clog << "Found " << m_artistTracks.size() << " artist(s), across " << m_yearTracks.size() << " year(s)" << endl;
@@ -193,7 +214,25 @@ void MusicFolderCrawler::crawl(void)
 void MusicFolderCrawler::record_album_artist(const string &entryName,
 	const string &artist, const string &album)
 {
-	m_albumArtists.insert(pair<string, string>(album, artist));
+	// Nothing to do here
+}
+
+void MusicFolderCrawler::record_track_artist(const Track &newTrack,
+	const string &artist, const string &title, int year)
+{
+	if (m_identifyCovers == false)
+	{
+		// Nothing to do
+		return;
+	}
+
+#ifdef HAVE_FNMATCH_H
+	// Try and catch "title (artist_name cover)"
+	if (fnmatch("* cover)", title.c_str(), FNM_NOESCAPE) == 0)
+	{
+		m_coverTracks.push_back(newTrack);
+	}
+#endif
 }
 
 void MusicFolderCrawler::crawl_folder(const string &entryName)
@@ -208,8 +247,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 	else if (S_ISREG(fileStat.st_mode))
 	{
 		// FIXME: look up MIME type, make sure it's a music file
-		Track newTrack(entryName, entryName,
-			fileStat.st_mtime);
+		Track newTrack(entryName, fileStat.st_mtime);
 
 		if (newTrack.retrieve_tags(false) == false)
 		{
@@ -218,6 +256,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 
 		string album(to_lower_case(newTrack.get_album()));
 		string artist(to_lower_case(newTrack.get_artist()));
+		string title(to_lower_case(newTrack.get_title()));
 		int year = newTrack.get_year();
 
 		if ((artist.empty() == true) ||
@@ -262,7 +301,9 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 			artistIter->second->push_back(newTrack);
 		}
 
+		// Record associations
 		record_album_artist(entryName, artist, album);
+		record_track_artist(newTrack, artist, title, year);
 	}
 	else if (S_ISDIR(fileStat.st_mode))
 	{
@@ -296,7 +337,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 			{
 				string subEntryName(entryName);
 
-				if (entryName[entryName.length() - 1] != '/')
+				if (subEntryName[subEntryName.length() - 1] != '/')
 				{
 					subEntryName += "/";
 				}
@@ -322,6 +363,8 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 
 unsigned int MusicFolderCrawler::m_maxDepth = 0;
 
+bool MusicFolderCrawler::m_identifyCovers = false;
+
 BandcampAlbum::BandcampAlbum(const string &artist,
 	const string &album) :
 	m_artist(artist),
@@ -341,8 +384,11 @@ BandcampAlbum::~BandcampAlbum()
 
 BandcampAlbum &BandcampAlbum::operator=(const BandcampAlbum &other)
 {
-	m_artist = other.m_artist;
-	m_album = other.m_album;
+	if (this != &other)
+	{
+		m_artist = other.m_artist;
+		m_album = other.m_album;
+	}
 
 	return *this;
 }
@@ -440,6 +486,7 @@ void BandcampMusicCrawler::crawl(void)
 		string albumTitle(to_lower_case((*itemIter)["album_title"].string_value()));
 		BandcampAlbum thisAlbum(bandName, albumTitle);
 		string purchaseDate((*itemIter)["purchased"].string_value());
+		string albumArtUrl((*itemIter)["item_art_url"].string_value());
 		struct tm timeTm;
 		char timeStr[32];
 
@@ -481,7 +528,7 @@ void BandcampMusicCrawler::crawl(void)
 		const vector<Track> *pTracks = artistIter->second;
 		// FIXME: optimize for speed and keep track of albums?
 		unsigned int albumTrackCount = find_album_tracks(pTracks,
-			thisAlbum, year, timeStr, strSize);
+			thisAlbum, albumArtUrl, year, timeStr, strSize);
 
 		if (albumTrackCount == 0)
 		{
@@ -494,7 +541,7 @@ void BandcampMusicCrawler::crawl(void)
 
 			// Load that album's tracks
 			albumTrackCount = find_album_tracks(pTracks,
-				thisAlbum, year, timeStr, strSize);
+				thisAlbum, albumArtUrl, year, timeStr, strSize);
 		}
 
 		clog << "Bandcamp album " << thisAlbum.m_artist << " - " << thisAlbum.m_album
@@ -515,8 +562,8 @@ void BandcampMusicCrawler::record_album_artist(const string &entryName,
 }
 
 unsigned int BandcampMusicCrawler::find_album_tracks(const vector<Track> *pTracks,
-	const BandcampAlbum &thisAlbum, unsigned int year,
-	char *timeStr, size_t strSize)
+	const BandcampAlbum &thisAlbum, const string &albumArtUrl,
+	unsigned int year, char *timeStr, size_t strSize)
 {
 	unsigned int albumTrackCount = 0;
 
@@ -536,6 +583,9 @@ unsigned int BandcampMusicCrawler::find_album_tracks(const vector<Track> *pTrack
 		{
 			continue;
 		}
+
+		// Record the album art
+		newTrack.set_album_art(albumArtUrl);
 
 		// Sort all these tracks by mtime
 		if (strSize > 0)
@@ -597,6 +647,13 @@ void BandcampMusicCrawler::load_lookup_file(void)
 			else if (pathValue.empty() == false)
 			{
 				map<string, BandcampAlbum>::const_iterator pathIter = m_pathAlbums.find(pathValue);
+
+				if (pathIter == m_pathAlbums.end())
+				{
+					// Try again, assume it's a relative path
+					pathValue.insert(0, m_topLevelDirName);
+					pathIter = m_pathAlbums.find(pathValue);
+				}
 
 				if (pathIter != m_pathAlbums.end())
 				{

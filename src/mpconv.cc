@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021 Fabrice Colin
+ *  Copyright 2021-2022 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ static bool convert_playlist(const string &inputFileName,
 		// Every second line should be a track path
 		else if (getTrackPath == true)
 		{
-			Track newTrack(trackName, line);
+			Track newTrack(line);
 
 			newTrack.adjust_path();
 			if (newTrack.retrieve_tags(true) == true)
