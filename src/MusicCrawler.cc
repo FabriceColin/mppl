@@ -266,7 +266,7 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 		// FIXME: look up MIME type, make sure it's a music file
 		Track newTrack(entryName, fileStat.st_mtime);
 
-		if (newTrack.retrieve_tags(false) == false)
+		if (newTrack.retrieve_tags() == false)
 		{
 			return;
 		}
@@ -276,10 +276,23 @@ void MusicFolderCrawler::crawl_folder(const string &entryName)
 		string title(to_lower_case(newTrack.get_title()));
 		int year = newTrack.get_year();
 
-		if ((artist.empty() == true) ||
-			(year == 0))
+		if (album.empty() == true)
 		{
-			clog << "Missing artist/year metadata on " << entryName << endl;
+			album = "Unknown album";
+		}
+		if (artist.empty() == true)
+		{
+			clog << "Missing artist metadata on " << entryName << endl;
+			return;
+		}
+		if (title.empty() == true)
+		{
+			clog << "Missing title metadata on " << entryName << endl;
+			return;
+		}
+		if (year == 0)
+		{
+			clog << "Missing year metadata on " << entryName << endl;
 			return;
 		}
 

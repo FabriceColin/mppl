@@ -147,7 +147,7 @@ static bool convert_playlist(const string &inputFileName,
 			Track newTrack(line);
 
 			newTrack.adjust_path();
-			if (newTrack.retrieve_tags(true) == true)
+			if (newTrack.retrieve_tags() == true)
 			{
 				TrackSort sort = TRACK_SORT_ALPHA;
 

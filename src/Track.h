@@ -19,6 +19,7 @@
 #ifndef _TRACK_H
 #define _TRACK_H
 
+#include <tag.h>
 #include <time.h>
 #include <string>
 #include <json11.hpp>
@@ -39,7 +40,7 @@ class Track
 
 		bool operator<(const Track &other) const;
 
-		bool retrieve_tags(bool conversionMode);
+		bool retrieve_tags(void);
 
 		const std::string &get_title(void) const;
 
@@ -75,6 +76,12 @@ class Track
 		int m_year;
 		time_t m_modTime;
 		TrackSort m_sort;
+
+		bool read_tags(TagLib::Tag *pTag);
+
+		bool retrieve_tags_any(void);
+
+		bool retrieve_tags_mp3(void);
 
 		bool sort_by_artist(const Track &other) const;
 

@@ -17,8 +17,9 @@
  */
 
 #include <fileref.h>
+#include <id3v2tag.h>
+#include <mpegfile.h>
 #include <tfile.h>
-#include <tag.h>
 #include <iostream>
 #include <fstream>
 
@@ -104,18 +105,8 @@ bool Track::operator<(const Track &other) const
 	return sort_by_artist(other);
 }
 
-bool Track::retrieve_tags(bool conversionMode)
+bool Track::read_tags(TagLib::Tag *pTag)
 {
-	TagLib::FileRef fileRef(m_trackPath.c_str(), false);
-
-	if (fileRef.isNull() == true)
-	{
-		clog << "Failed to load " << m_trackPath << endl;
-		return false;
-	}
-
-	TagLib::Tag *pTag = fileRef.tag();
-
 	if ((pTag == NULL) ||
 		(pTag->isEmpty() == true))
 	{
@@ -154,6 +145,72 @@ bool Track::retrieve_tags(bool conversionMode)
 	m_uri += m_trackPath;
 
 	return true;
+}
+
+bool Track::retrieve_tags_any(void)
+{
+	TagLib::FileRef fileRef(m_trackPath.c_str(), false);
+
+	if (fileRef.isNull() == true)
+	{
+		clog << "Failed to load " << m_trackPath << endl;
+		return false;
+	}
+
+	TagLib::Tag *pTag = fileRef.tag();
+
+	return read_tags(pTag);
+}
+
+bool Track::retrieve_tags_mp3(void)
+{
+	TagLib::MPEG::File mpegFile(m_trackPath.c_str(), false);
+
+	if (mpegFile.isValid() == false)
+	{
+		clog << "Failed to load " << m_trackPath << endl;
+		return false;
+	}
+
+	TagLib::Tag *pTag = mpegFile.tag();
+
+	if (read_tags(pTag) == false)
+	{
+		return false;
+	}
+
+	if ((m_artist.empty() == true) &&
+		mpegFile.hasID3v2Tag())
+	{
+		TagLib::ID3v2::Tag *pV2Tag = mpegFile.ID3v2Tag();
+		TagLib::ID3v2::FrameList tagList = pV2Tag->frameListMap()["TPE2"];
+
+		// Look for the artist in TPE2
+		for (TagLib::ID3v2::FrameList::ConstIterator frameIter = tagList.begin();
+			frameIter != tagList.end(); ++frameIter)
+		{
+			m_artist = (*frameIter)->toString().toCString(true);
+			if (m_artist.empty() == false)
+			{
+				break;
+			}
+		}
+	}
+
+	return true;
+}
+
+bool Track::retrieve_tags(void)
+{
+	string::size_type pos = m_trackPath.find(".mp3");
+
+	if ((pos != string::npos) &&
+		(pos == m_trackPath.length() - 4))
+	{
+		return retrieve_tags_mp3();
+	}
+
+	return retrieve_tags_any();
 }
 
 const string &Track::get_title(void) const
