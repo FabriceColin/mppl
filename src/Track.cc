@@ -287,13 +287,13 @@ bool Track::sort_by_artist(const Track &other) const
 	}
 	else if (artist == otherArtist)
 	{
-		if (m_sort == TRACK_SORT_ALPHA)
-		{
-			return sort_by_album(other);
-		}
-		else if (m_sort == TRACK_SORT_YEAR)
+		if (m_sort == TRACK_SORT_YEAR)
 		{
 			return sort_by_year(other);
+		}
+		else
+		{
+			return sort_by_album(other);
 		}
 	}
 
