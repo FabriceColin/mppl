@@ -36,6 +36,7 @@ using std::vector;
 static struct option g_longOptions[] = {
     {"from", 1, 0, 'f'},
     {"help", 0, 0, 'h'},
+    {"music-library", 1, 0, 'm'},
     {"sort", 1, 0, 's'},
     {"to", 1, 0, 't'},
     {"version", 0, 0, 'v'},
@@ -195,6 +196,7 @@ static void print_help(void)
 		<< "Options:\n"
 		<< "  -f, --from EXISTING_PATH      path to replace\n"
 		<< "  -h, --help                    display this help and exit\n"
+		<< "  -m, --music-library NAME      name of the music library this is for, defaults to INTERNAL\n"
 		<< "  -s, --sort alpha|year|mtime   how to sort MPD_PLAYLIST\n"
 		<< "  -t, --to NEW_PATH             path to replace EXISTING_PATH with\n"
 		<< "  -v, --version                 output version information and exit\n"
@@ -210,7 +212,7 @@ int main(int argc, char **argv)
 	Track::m_musicLibrary = "INTERNAL";
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "f:hs:t:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "f:hm:s:t:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -224,6 +226,12 @@ int main(int argc, char **argv)
 			case 'h':
 				print_help();
 				return EXIT_SUCCESS;
+			case 'm':
+				if (optarg != NULL)
+				{
+					Track::m_musicLibrary = optarg;
+				}
+				break;
 			case 's':
 				if (optarg != NULL)
 				{
@@ -244,7 +252,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "f:hs:t:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "f:hm:s:t:v", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)

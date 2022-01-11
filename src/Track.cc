@@ -142,6 +142,10 @@ bool Track::read_tags(TagLib::Tag *pTag)
 			m_trackPath.replace(startPos, m_fromPath.length(), "");
 		}
 	}
+	if (m_musicLibrary[m_musicLibrary.length() - 1] != '/')
+	{
+		m_uri += "/";
+	}
 	m_uri += m_trackPath;
 
 	return true;
