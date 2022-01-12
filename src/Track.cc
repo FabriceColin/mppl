@@ -16,10 +16,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <fcntl.h>
+#include <unistd.h>
 #include <fileref.h>
 #include <id3v2tag.h>
 #include <mpegfile.h>
 #include <tfile.h>
+#include <utf8proc.h>
 #include <iostream>
 #include <fstream>
 
@@ -103,6 +106,23 @@ bool Track::operator<(const Track &other) const
 	}
 
 	return sort_by_artist(other);
+}
+
+string Track::normalized_track_name(void) const
+{
+	// NFC seems to be what Linux FS'es use
+	utf8proc_uint8_t *pName = utf8proc_NFC((utf8proc_uint8_t *)m_trackPath.c_str());
+
+	if (pName == NULL)
+	{
+		return "";
+	}
+
+	string normalizedName((char *)pName);
+
+	free(pName);
+
+	return normalizedName;
 }
 
 bool Track::read_tags(TagLib::Tag *pTag)
@@ -206,6 +226,21 @@ bool Track::retrieve_tags_mp3(void)
 
 bool Track::retrieve_tags(void)
 {
+	// Does the file exist?
+	if (access(m_trackPath.c_str(), F_OK) == -1)
+	{
+		string trackPath(normalized_track_name());
+
+		if (access(trackPath.c_str(), F_OK) == -1)
+		{
+			clog << "Failed to open " << m_trackPath << endl;
+			return false;
+		}
+
+		// Correct this
+		m_trackPath = trackPath;
+	}
+
 	string::size_type pos = m_trackPath.find(".mp3");
 
 	if ((pos != string::npos) &&

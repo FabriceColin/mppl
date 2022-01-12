@@ -1,8 +1,8 @@
 bin_PROGRAMS = mpbandcamp mpconv mpgen
 
-AM_CXXFLAGS = @JSON_CFLAGS@ @TAGLIB_CFLAGS@
+AM_CXXFLAGS = @JSON_CFLAGS@ @TAGLIB_CFLAGS@ @LIBUTF8PROC_CFLAGS@
 
-mpbandcamp_LDADD = @TAGLIB_LIBS@ @JSON_LIBS@
+mpbandcamp_LDADD = @LIBUTF8PROC_LIBS@ @TAGLIB_LIBS@ @JSON_LIBS@
 
 mpbandcamp_SOURCES = mpbandcamp.cc \
 	MusicCrawler.cc \
@@ -18,7 +18,7 @@ mpconv_SOURCES = mpconv.cc \
 	Utilities.cc \
 	Utilities.h
 
-mpconv_LDADD = @TAGLIB_LIBS@ @JSON_LIBS@
+mpconv_LDADD = @LIBUTF8PROC_LIBS@ @TAGLIB_LIBS@ @JSON_LIBS@
 
 mpgen_SOURCES = mpgen.cc \
 	MusicCrawler.cc \
@@ -28,4 +28,4 @@ mpgen_SOURCES = mpgen.cc \
 	Utilities.cc \
 	Utilities.h
 
-mpgen_LDADD = @TAGLIB_LIBS@ @JSON_LIBS@
+mpgen_LDADD = @LIBUTF8PROC_LIBS@ @TAGLIB_LIBS@ @JSON_LIBS@

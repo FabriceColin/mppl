@@ -77,6 +77,8 @@ class Track
 		time_t m_modTime;
 		TrackSort m_sort;
 
+		std::string normalized_track_name(void) const;
+
 		bool read_tags(TagLib::Tag *pTag);
 
 		bool retrieve_tags_any(void);
