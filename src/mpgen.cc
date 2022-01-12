@@ -41,7 +41,6 @@ static struct option g_longOptions[] = {
     {"help", 0, 0, 'h'},
     {"music-library", 1, 0, 'm'},
     {"output-directory", 1, 0, 'o'},
-    {"to", 1, 0, 't'},
     {"version", 0, 0, 'v'},
     {0, 0, 0, 0}
 };
@@ -70,7 +69,6 @@ static void print_help(void)
 		<< "  -h, --help                    display this help and exit\n"
 		<< "  -m, --music-library NAME      name of the music library this is for, defaults to INTERNAL\n"
 		<< "  -o, --output-directory NAME   name of the directory to write playlists to when in browse mode\n"
-		<< "  -t, --to NEW_PATH             path to replace EXISTING_PATH with\n"
 		<< "  -v, --version                 output version information and exit\n"
 		<< endl;
 }
@@ -83,7 +81,7 @@ int main(int argc, char **argv)
 	Track::m_musicLibrary = "INTERNAL";
 
 	// Look at the options
-	int optionChar = getopt_long(argc, argv, "cd:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+	int optionChar = getopt_long(argc, argv, "cd:f:hm:o:v", g_longOptions, &longOptionIndex);
 	while (optionChar != -1)
 	{
 		switch (optionChar)
@@ -122,12 +120,6 @@ int main(int argc, char **argv)
 					}
 				}
 				break;
-			case 't':
-				if (optarg != NULL)
-				{
-					Track::m_toPath = optarg;
-				}
-				break;
 			case 'v':
 				clog << PACKAGE_STRING << endl;
 				return EXIT_SUCCESS;
@@ -136,7 +128,7 @@ int main(int argc, char **argv)
 		}
 
 		// Next option
-		optionChar = getopt_long(argc, argv, "cd:f:hm:o:t:v", g_longOptions, &longOptionIndex);
+		optionChar = getopt_long(argc, argv, "cd:f:hm:o:v", g_longOptions, &longOptionIndex);
 	}
 
 	if (argc == 1)
