@@ -43,7 +43,7 @@ $ mpgen -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/vo
 
 If artist or year metadata is missing, mpgen complains with a "Missing artist/title/year metadata on..." message.
 
-Covers identification may be enabled with the -c/--covers option. This will generate a "Covers" playlist.
+Covers identification may be enabled with the -c/--covers option. This will generate a "Covers" playlist that lists tracks with a title matching "* cover)".
 
 # Playlists generation from a on-disk music collection and a Bandcamp collection
 

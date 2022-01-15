@@ -1,4 +1,4 @@
-AC_INIT([mppl], [0.9.0])
+AC_INIT([mppl], [1.0.0])
 AC_CONFIG_SRCDIR([src/mpconv.cc])
 AM_INIT_AUTOMAKE
 
