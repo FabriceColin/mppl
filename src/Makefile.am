@@ -5,6 +5,8 @@ AM_CXXFLAGS = @JSON_CFLAGS@ @TAGLIB_CFLAGS@ @LIBUTF8PROC_CFLAGS@
 mpbandcamp_LDADD = @LIBUTF8PROC_LIBS@ @TAGLIB_LIBS@ @JSON_LIBS@
 
 mpbandcamp_SOURCES = mpbandcamp.cc \
+	BandcampMusicCrawler.cc \
+	BandcampMusicCrawler.h \
 	MusicCrawler.cc \
 	MusicCrawler.h \
 	Track.cc \

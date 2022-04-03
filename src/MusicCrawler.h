@@ -39,6 +39,11 @@ class MusicCrawler
 	protected:
 		std::map<int, std::vector<Track>*> m_yearTracks;
 
+		static std::string escape_quotes(const std::string &str);
+
+		void dump_and_delete_tracks(std::map<int, std::vector<Track>*> tracks,
+			const std::string &prefix);
+
 	private:
 		MusicCrawler(const MusicCrawler &other);
 		bool operator<(const MusicCrawler &other) const;
@@ -74,68 +79,6 @@ class MusicFolderCrawler : public MusicCrawler
 	private:
 		MusicFolderCrawler(const MusicFolderCrawler &other);
 		bool operator<(const MusicFolderCrawler &other) const;
-
-};
-
-class BandcampAlbum
-{
-	public:
-		BandcampAlbum(const std::string &artist,
-			const std::string &album);
-		BandcampAlbum(const BandcampAlbum &other);
-		virtual ~BandcampAlbum();
-
-		BandcampAlbum &operator=(const BandcampAlbum &other);
-
-		bool operator<(const BandcampAlbum &other) const;
-
-		std::string to_key(void) const;
-
-		std::string m_artist;
-		std::string m_album;
-
-};
-
-class BandcampMusicCrawler : public MusicFolderCrawler
-{
-	public:
-		BandcampMusicCrawler(const std::string &topLevelDirName,
-			const char *pCollection);
-		BandcampMusicCrawler(const std::string &topLevelDirName,
-			const char *pCollection,
-			const char *pLookup);
-		virtual ~BandcampMusicCrawler();
-
-		virtual void crawl(void);
-
-		static std::string m_lookupFileName;
-
-	protected:
-		json11::Json m_bandcampObject;
-		json11::Json m_lookupObject;
-		std::map<std::string, BandcampAlbum> m_resolvedAlbums;
-		std::map<std::string, BandcampAlbum> m_pathAlbums;
-		std::vector<BandcampAlbum> m_missingAlbums;
-		std::map<int, std::vector<Track>*> m_purchasedTracks;
-		std::string m_error;
-
-		virtual void record_album_artist(const std::string &entryName,
-			const std::string &artist, const std::string &album);
-
-		unsigned int find_album_tracks(const std::vector<Track> *pTracks,
-			const BandcampAlbum &thisAlbum,
-			const std::string &albumArtUrl,
-			unsigned int year, char *timeStr, size_t strSize);
-
-		void load_lookup_file(void);
-
-		bool resolve_missing_album(BandcampAlbum &album);
-
-		void write_lookup_file(void);
-
-	private:
-		BandcampMusicCrawler(const BandcampMusicCrawler &other);
-		bool operator<(const BandcampMusicCrawler &other) const;
 
 };
 
