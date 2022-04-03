@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <fileref.h>
@@ -23,6 +24,7 @@
 #include <mpegfile.h>
 #include <tfile.h>
 #include <utf8proc.h>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 
@@ -32,6 +34,8 @@
 using json11::Json;
 using std::clog;
 using std::endl;
+using std::max;
+using std::min;
 using std::ofstream;
 using std::string;
 using std::vector;
@@ -372,6 +376,20 @@ bool Track::sort_by_year(const Track &other) const
 
 bool Track::sort_by_mtime(const Track &other) const
 {
+	string artist(to_lower_case(m_artist)), otherArtist(to_lower_case(other.m_artist));
+
+	// Tracks from the same artist within 10 minutes are sorted by year
+	if (artist == otherArtist)
+	{
+		double seconds = difftime(max(m_modTime, other.m_modTime),
+			min(m_modTime, other.m_modTime));
+
+		if (seconds < 600)
+		{
+			return sort_by_year(other);
+		}
+	}
+
 	if (m_modTime < other.m_modTime)
 	{
 		return true;
