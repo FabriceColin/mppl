@@ -22,7 +22,7 @@ Since M3u8 playlists only include filenames, mpconv needs to know where tracks a
 For example, on the Mac where the playlist "Bought in 2021" was generated, the music collection was found at "/Volumes/PowerBook SD/Music" while the Volumio internal library is available locally at "/fmedia/volumio_data/dyn/data/INTERNAL" so mpconv is called as follows.
 
 ```shell
-$ mpconv -m INTERNAL -f "/Volumes/PowerBook SD/Music" -t /fmedia/volumio_data/dyn/data/INTERNAL Bought\ in\ 2021.m3u8 Bought\ in\ 2021
+$ mpconv -m "mnt/INTERNAL" -f "/Volumes/PowerBook SD/Music" -t /fmedia/volumio_data/dyn/data/INTERNAL Bought\ in\ 2021.m3u8 Bought\ in\ 2021
 ```
 
 mpconv attempts to normalize Unicode Mac filenames to a form that makes sense for Linux. mpconv complains with a "Failed to open/load/find tags..." message when a file does not exist, can't be opened or does not have any tag.
@@ -38,7 +38,7 @@ Artist playlists are always sorted by release date first, then by album name and
 mpgen needs to be pointed at the music library and told with -f/--from what part of the path should be dropped from the resulting track URIs.
 
 ```shell
-$ mpgen -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL
+$ mpgen -m "mnt/INTERNAL" -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL
 ```
 
 If artist or year metadata is missing, mpgen complains with a "Missing artist/title/year metadata on..." message.
@@ -54,7 +54,7 @@ These additional playlists are sorted by purchase date then by artist, album nam
 ```shell
 $ curl -X POST -H "Content-Type: Application/JSON" -d '{"fan_id":FAN_ID,"older_than_token":"CURRENT_EPOCH:0:a::","count":COLLECTION_SIZE}' https://bandcamp.com/api/fancollection/1/collection_items >collection_items.json
 
-$ mpbandcamp -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL collection_items.json
+$ mpbandcamp -m "mnt/INTERNAL" -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL collection_items.json
 ```
 
 FAN_ID is your Bandcamp fan ID. It can be obtained with your browser's developer tools, by looking at XHR requests to https://bandcamp.com/api/fancollection/1/collection_items when you press the "view all" button at the bottom of your Bandcamp collection page
@@ -68,7 +68,7 @@ The Bandcamp fancollection API doesn't provide any track metadata, therefore it 
 Since the artist and album information on Bandcamp doesn't necessarily match 100% how your music collection is tagged, there may be some purchases that can't be found on-disk. When that happens, mpbandcamp complains with "No tracks for..." messages. These can be saved to a lookup file for manual resolving.
 
 ```shell
-$ mpbandcamp -l lookup.json -m INTERNAL -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL collection_items.json
+$ mpbandcamp -l lookup.json -m "mnt/INTERNAL" -d 2 -o /fmedia/volumio_data/dyn/data/playlist -f /fmedia/volumio_data/dyn/data/INTERNAL /fmedia/volumio_data/dyn/data/INTERNAL collection_items.json
 ```
 
 lookup.json will list these purchases. For example:

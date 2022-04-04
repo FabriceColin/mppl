@@ -142,7 +142,7 @@ bool Track::read_tags(TagLib::Tag *pTag)
 	m_artist = pTag->artist().toCString(true);
 	m_album = pTag->album().toCString(true);
 	m_albumArt.clear();
-	m_uri = string("music-library/") + m_musicLibrary;
+	m_uri = m_musicLibrary;
 	m_number = pTag->track();
 	m_year = pTag->year();
 
