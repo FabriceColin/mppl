@@ -1,3 +1,6 @@
+2025/04/20 1.1.0
+- Switched from json11 to jsoncpp
+
 2022/01/15 1.0.0
 - Initial release
 
