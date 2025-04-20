@@ -1,4 +1,4 @@
-AC_INIT([mppl], [1.0.0])
+AC_INIT([mppl],[1.0.0])
 AC_CONFIG_SRCDIR([src/mpconv.cc])
 AM_INIT_AUTOMAKE
 
@@ -7,7 +7,7 @@ AC_PROG_CXX
 AC_CHECK_FUNCS(strptime)
 AC_CHECK_HEADERS([fnmatch.h])
 
-PKG_CHECK_MODULES(JSON, json11 >= 1.0 )
+PKG_CHECK_MODULES(JSON, jsoncpp >= 1.9.6 )
 AC_SUBST(JSON_CFLAGS)
 AC_SUBST(JSON_LIBS)
 
@@ -36,8 +36,8 @@ fi
 AC_MSG_RESULT($enable_debug)
 
 
-AC_OUTPUT(
-Makefile
+AC_CONFIG_FILES([Makefile
 mppl.spec
 src/Makefile
-)
+])
+AC_OUTPUT

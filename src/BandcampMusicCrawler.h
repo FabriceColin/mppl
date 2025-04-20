@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2022 Fabrice Colin
+ *  Copyright 2021-2025 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include <json11.hpp>
+#include <json/json.h>
 
 #include "MusicCrawler.h"
 #include "Track.h"
@@ -61,13 +61,13 @@ class BandcampMusicCrawler : public MusicFolderCrawler
 		static std::string m_lookupFileName;
 
 	protected:
-		json11::Json m_bandcampObject;
-		json11::Json m_lookupObject;
+		Json::Value m_bandcampObject;
+		Json::Value m_lookupObject;
 		std::map<std::string, BandcampAlbum> m_resolvedAlbums;
 		std::map<std::string, BandcampAlbum> m_pathAlbums;
 		std::vector<BandcampAlbum> m_missingAlbums;
 		std::map<int, std::vector<Track>*> m_purchasedTracks;
-		std::string m_error;
+		bool m_parseError;
 
 		virtual void record_album_artist(const std::string &entryName,
 			const std::string &artist, const std::string &album);

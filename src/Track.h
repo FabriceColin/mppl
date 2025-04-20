@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2022 Fabrice Colin
+ *  Copyright 2021-2025 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <tag.h>
 #include <time.h>
 #include <string>
-#include <json11.hpp>
+#include <json/json.h>
 
 typedef enum { TRACK_SORT_ALPHA = 0, TRACK_SORT_YEAR, TRACK_SORT_MTIME } TrackSort;
 
@@ -56,7 +56,7 @@ class Track
 
 		void set_sort(TrackSort sort);
 
-		json11::Json to_json(void) const;
+		Json::Value to_json(void) const;
 
 		static void write_file(const std::string &outputFileName,
 			const std::vector<Track> &tracks);

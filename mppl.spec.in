@@ -7,8 +7,8 @@ Group: Applications/Internet
 Source: %{name}-%{version}.tar.gz
 URL: https://github.com/FabriceColin/mppl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires: json11 >= 1.0, taglib >= 1.4
-BuildRequires: json11-devel >= 1.0, taglib-devel >= 1.4
+Requires: jsoncpp >= 1.9.6, taglib >= 1.4
+BuildRequires: jsoncpp-devel >= 1.9.6, taglib-devel >= 1.4
 BuildRequires: gcc-c++
 
 %description

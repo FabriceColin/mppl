@@ -1,5 +1,5 @@
 /*
- *  Copyright 2021-2022 Fabrice Colin
+ *  Copyright 2021-2025 Fabrice Colin
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include "Track.h"
 #include "Utilities.h"
 
-using json11::Json;
 using std::clog;
 using std::endl;
 using std::max;
@@ -44,7 +43,7 @@ Track::Track(const string &trackPath,
 	time_t modTime) :
 	m_trackPath(trackPath),
 	m_number(0),
-	m_year(2021),
+	m_year(2023),
 	m_modTime(modTime),
 	m_sort(TRACK_SORT_ALPHA)
 {
@@ -291,33 +290,24 @@ void Track::set_sort(TrackSort sort)
 	m_sort = sort;
 }
 
-Json Track::to_json(void) const
+Json::Value Track::to_json(void) const
 {
-	if (m_albumArt.empty() == true)
+	Json::Value object;
+
+	object["album"] = m_album;
+	object["artist"] = m_artist;
+	object["service"] = "mpd";
+	object["title"] = m_title;
+	object["type"] = "song";
+	object["uri"] = m_uri;
+	object["year"] = m_year;
+
+	if (m_albumArt.empty() == false)
 	{
-		return Json::object {
-			{ "album", m_album },
-			{ "artist", m_artist },
-			{ "service", "mpd" },
-			{ "title", m_title },
-			{ "type", "song" },
-			{ "uri", m_uri },
-			{ "year", m_year }
-		};
+		object["albumart"] = m_albumArt;
 	}
-	else
-	{
-		return Json::object {
-			{ "album", m_album },
-			{ "albumart", m_albumArt },
-			{ "artist", m_artist },
-			{ "service", "mpd" },
-			{ "title", m_title },
-			{ "type", "song" },
-			{ "uri", m_uri },
-			{ "year", m_year }
-		};
-	}
+
+	return object;
 }
 
 bool Track::sort_by_artist(const Track &other) const
@@ -414,7 +404,18 @@ void Track::write_file(const string &outputFileName,
 	// Dump the JSON content
 	if (outputFile.good() == true)
 	{
-		outputFile << Json(tracks).dump() << endl;
+		Json::FastWriter writer;
+		Json::Value allTracks(Json::arrayValue);
+		unsigned int trackIndex = 0;
+
+		for (vector<Track>::const_iterator trackIter = tracks.begin();
+			trackIter != tracks.end(); ++trackIter)
+		{
+			allTracks[trackIndex] = trackIter->to_json();
+			++trackIndex;
+		}
+
+		outputFile << writer.write(allTracks);
 
 		outputFile.close();
 	}

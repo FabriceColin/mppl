@@ -1,13 +1,13 @@
 # mppl
 Music Player Playlists (mppl) tools
 
-Copyright 2021-2022 Fabrice Colin <fabrice dot colin at gmail dot com>
+Copyright 2021-2025 Fabrice Colin <fabrice dot colin at gmail dot com>
 
 Tools to convert or generate playlists suitable for [Volumio](https://volumio.com/en/) or any other [mpd](https://www.musicpd.org/) powered solution.
 
 # Dependencies
 
-[json11](https://github.com/dropbox/json11) 1.0
+[jsoncpp](https://github.com/open-source-parsers/jsoncpp) 1.9.6
 
 [taglib](http://taglib.github.io/) 1.4
 
